@@ -25,6 +25,7 @@ def main():
 
     elif args.repository != 'all':
         save_repository_state(cwd)
+        remove_dir_from_tmpfile(cwd)
 
 
 def in_git_toplevel(dir):
@@ -63,6 +64,14 @@ def add_dir_to_tmpfile(dir):
         if dir not in [line.strip() for line in f.readlines()]:
             f.write(dir)
             f.write('\n')
+
+
+def remove_dir_from_tmpfile(dir):
+    with open(os.path.join(os.environ['HOME'], '.work-worked-on'), 'r+') as f:
+        keep = [line for line in f.readlines() if dir != line.strip()]
+        f.seek(0)
+        f.writelines(keep)
+        f.truncate()
 
 
 if __name__ == '__main__':
