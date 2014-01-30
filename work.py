@@ -23,14 +23,16 @@ def main():
         revert_repository_state(cwd)
         add_dir_to_tmpfile(cwd)
 
-    elif args.repository != 'all':
-        repo = cwd if args.repository == '.' else args.repository
-        if os.path.isdir(repo) and in_git_toplevel(repo):
-            save_repository_state(repo)
-            remove_dir_from_tmpfile(repo)
-
     else:
-        for repo in get_worked_on():
+        repo_arg = args.repository
+        if repo_arg == '.':
+            repos = [cwd]
+        elif os.path.isdir(repo_arg) and in_git_toplevel(repo_arg):
+            repos = [repo_arg]
+        else:
+            repos = get_worked_on()
+
+        for repo in repos:
             save_repository_state(repo)
             remove_dir_from_tmpfile(repo)
 
