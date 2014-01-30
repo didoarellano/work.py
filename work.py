@@ -21,6 +21,8 @@ def main():
 
     if args.action == 'start':
         revert_repository_state(cwd)
+        add_dir_to_tmpfile(cwd)
+
     elif args.repository != 'all':
         save_repository_state(cwd)
 
@@ -54,6 +56,13 @@ def revert_repository_state(dir):
         subprocess.call(['git', 'reset', master_tip_sha], cwd=dir)
         subprocess.call(['git', 'checkout', 'master'], cwd=dir)
         subprocess.call(['git', 'branch', '--delete', 'work-end-checkpoint'], cwd=dir)
+
+
+def add_dir_to_tmpfile(dir):
+    with open(os.path.join(os.environ['HOME'], '.work-worked-on'), 'a+') as f:
+        if dir not in [line.strip() for line in f.readlines()]:
+            f.write(dir)
+            f.write('\n')
 
 
 if __name__ == '__main__':
