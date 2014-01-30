@@ -53,6 +53,7 @@ def revert_repository_state(dir):
                                                  cwd=dir).strip()
         subprocess.call(['git', 'reset', master_tip_sha], cwd=dir)
         subprocess.call(['git', 'checkout', 'master'], cwd=dir)
+        subprocess.call(['git', 'branch', '--delete', 'work-end-checkpoint'], cwd=dir)
 
 
 if __name__ == '__main__':
