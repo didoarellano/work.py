@@ -27,6 +27,11 @@ def main():
         save_repository_state(cwd)
         remove_dir_from_tmpfile(cwd)
 
+    else:
+        for repo in get_worked_on():
+            save_repository_state(repo)
+            remove_dir_from_tmpfile(repo)
+
 
 def in_git_toplevel(dir):
     try:
@@ -72,6 +77,11 @@ def remove_dir_from_tmpfile(dir):
         f.seek(0)
         f.writelines(keep)
         f.truncate()
+
+
+def get_worked_on():
+    with open(os.path.join(os.environ['HOME'], '.work-worked-on'), 'r') as f:
+        return [repo.strip() for repo in f.readlines()]
 
 
 if __name__ == '__main__':
