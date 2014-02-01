@@ -26,6 +26,7 @@ def main():
         print('\nStarting work on project: {0}'.format(os.path.basename(cwd)))
         revert_repository_state(cwd)
         add_repo_to_tmpfile(cwd, TMPFILE)
+        show_git_status(cwd)
 
     else:
         repo_arg = args.repository
@@ -41,6 +42,11 @@ def main():
             save_repository_state(repo)
             push_to_remote(repo, remote='private', force=True)
             remove_repo_from_tmpfile(repo, TMPFILE)
+
+
+def show_git_status(repo):
+    print('')
+    subprocess.call(['git', 'status'])
 
 
 def remote_exists(repo, remote):
