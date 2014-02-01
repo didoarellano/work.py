@@ -33,6 +33,21 @@ def main():
 
         for repo in repos:
             save_repository_state(repo)
+            push_to_remote(repo, remote='private', force=True)
+
+
+def remote_exists(dir, remote):
+    remotes = subprocess.check_output(['git', 'remote'], cwd=dir)
+    return remote in remotes
+
+
+def push_to_remote(dir, remote='origin', force=False):
+    if not remote_exists(dir, remote):
+        print('The remote "{0}" doesn\'t exist. Cancelling `git push`.'.format(remote))
+    else:
+        command = ['git', 'push', remote, '+work-end-checkpoint']
+        force and command.append('--force')
+        subprocess.call(command, cwd=dir)
 
 
 def remember_repo(fn):
