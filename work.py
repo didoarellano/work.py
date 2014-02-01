@@ -98,8 +98,7 @@ def add_dir_to_tmpfile(dir):
             print('\n{0} already in temp file.'.format(dir))
         else:
             print('\nAdding {0} to temp file.'.format(dir))
-            f.write(dir)
-            f.write('\n')
+            f.write(dir + '\n')
 
 
 def remove_dir_from_tmpfile(dir):
