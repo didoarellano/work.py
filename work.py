@@ -25,7 +25,7 @@ def main():
     if args.action == 'start':
         print('\nStarting work on project: {0}'.format(os.path.basename(cwd)))
         revert_repository_state(cwd)
-        add_dir_to_tmpfile(cwd, TMPFILE)
+        add_repo_to_tmpfile(cwd, TMPFILE)
 
     else:
         repo_arg = args.repository
@@ -40,27 +40,27 @@ def main():
             print('\nEnding work on project: {0}'.format(os.path.basename(repo)))
             save_repository_state(repo)
             push_to_remote(repo, remote='private', force=True)
-            remove_dir_from_tmpfile(repo, TMPFILE)
+            remove_repo_from_tmpfile(repo, TMPFILE)
 
 
-def remote_exists(dir, remote):
-    remotes = subprocess.check_output(['git', 'remote'], cwd=dir)
+def remote_exists(repo, remote):
+    remotes = subprocess.check_output(['git', 'remote'], cwd=repo)
     return remote in remotes
 
 
-def branch_exists(dir, branch):
-    branches = subprocess.check_output(['git', 'branch'], cwd=dir)
+def branch_exists(repo, branch):
+    branches = subprocess.check_output(['git', 'branch'], cwd=repo)
     return branch in branches
 
 
-def push_to_remote(dir, remote='origin', force=False):
-    if not remote_exists(dir, remote):
+def push_to_remote(repo, remote='origin', force=False):
+    if not remote_exists(repo, remote):
         print('\nThe remote "{0}" doesn\'t exist. Cancelling `git push`.'.format(remote))
     else:
         print('\nPushing work-end-checkpoint to {0} remote.'.format(remote))
         command = ['git', 'push', remote, '+work-end-checkpoint']
         force and command.append('--force')
-        subprocess.call(command, cwd=dir)
+        subprocess.call(command, cwd=repo)
 
 
 def in_git_toplevel(dir):
@@ -74,40 +74,40 @@ def in_git_toplevel(dir):
         return False
 
 
-def save_repository_state(dir):
+def save_repository_state(repo):
     print('\nCommiting working tree to work-end-checkpoint branch.')
     commit_message = 'Work end checkpoint commit'
-    subprocess.call(['git', 'checkout', '-B', 'work-end-checkpoint'], cwd=dir)
-    subprocess.call(['git', 'add', '.'], cwd=dir)
-    subprocess.call(['git', 'commit', '--message', commit_message], cwd=dir)
+    subprocess.call(['git', 'checkout', '-B', 'work-end-checkpoint'], cwd=repo)
+    subprocess.call(['git', 'add', '.'], cwd=repo)
+    subprocess.call(['git', 'commit', '--message', commit_message], cwd=repo)
 
 
-def revert_repository_state(dir):
-    if not branch_exists(dir, 'work-end-checkpoint'):
+def revert_repository_state(repo):
+    if not branch_exists(repo, 'work-end-checkpoint'):
         print('\nNo work-end-checkpoint branch found. Cancelling reset to master.')
     else:
         print('\nResetting to tip of master branch and deleting the work-end-checkpoint branch.')
         master_tip_sha = subprocess.check_output(['git', 'rev-parse', 'master'],
-                                                 cwd=dir).strip()
-        subprocess.call(['git', 'checkout', 'work-end-checkpoint'], cwd=dir)
-        subprocess.call(['git', 'reset', master_tip_sha], cwd=dir)
-        subprocess.call(['git', 'checkout', 'master'], cwd=dir)
-        subprocess.call(['git', 'branch', '--delete', 'work-end-checkpoint'], cwd=dir)
+                                                 cwd=repo).strip()
+        subprocess.call(['git', 'checkout', 'work-end-checkpoint'], cwd=repo)
+        subprocess.call(['git', 'reset', master_tip_sha], cwd=repo)
+        subprocess.call(['git', 'checkout', 'master'], cwd=repo)
+        subprocess.call(['git', 'branch', '--delete', 'work-end-checkpoint'], cwd=repo)
 
 
-def add_dir_to_tmpfile(dir, tmpfile):
+def add_repo_to_tmpfile(repo, tmpfile):
     with open(tmpfile, 'a+') as f:
-        if dir in [line.strip() for line in f.readlines()]:
-            print('\n{0} already in temp file.'.format(dir))
+        if repo in [line.strip() for line in f.readlines()]:
+            print('\n{0} already in temp file.'.format(repo))
         else:
-            print('\nAdding {0} to temp file.'.format(dir))
-            f.write(dir + '\n')
+            print('\nAdding {0} to temp file.'.format(repo))
+            f.write(repo + '\n')
 
 
-def remove_dir_from_tmpfile(dir, tmpfile):
+def remove_repo_from_tmpfile(repo, tmpfile):
     with open(tmpfile, 'r+') as f:
-        keep = [line for line in f.readlines() if dir != line.strip()]
-        print('\nRemoving {0} from temp file.'.format(dir))
+        keep = [line for line in f.readlines() if repo != line.strip()]
+        print('\nRemoving {0} from temp file.'.format(repo))
         f.seek(0)
         f.writelines(keep)
         f.truncate()
