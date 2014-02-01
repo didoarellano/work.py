@@ -5,6 +5,9 @@ import argparse
 import subprocess
 
 
+TMPFILE = os.path.join(os.environ['HOME'], '.work-worked-on')
+
+
 def main():
     parser = argparse.ArgumentParser(usage='work action [repository]')
     parser.add_argument('action', help='"start" or "end"')
@@ -22,7 +25,7 @@ def main():
     if args.action == 'start':
         print('\nStarting work on project: {0}'.format(os.path.basename(cwd)))
         revert_repository_state(cwd)
-        add_dir_to_tmpfile(cwd)
+        add_dir_to_tmpfile(cwd, TMPFILE)
 
     else:
         repo_arg = args.repository
@@ -31,13 +34,13 @@ def main():
         elif os.path.isdir(repo_arg) and in_git_toplevel(repo_arg):
             repos = [repo_arg]
         else:
-            repos = get_worked_on()
+            repos = get_worked_on(TMPFILE)
 
         for repo in repos:
             print('\nEnding work on project: {0}'.format(os.path.basename(repo)))
             save_repository_state(repo)
             push_to_remote(repo, remote='private', force=True)
-            remove_dir_from_tmpfile(repo)
+            remove_dir_from_tmpfile(repo, TMPFILE)
 
 
 def remote_exists(dir, remote):
@@ -92,8 +95,8 @@ def revert_repository_state(dir):
         subprocess.call(['git', 'branch', '--delete', 'work-end-checkpoint'], cwd=dir)
 
 
-def add_dir_to_tmpfile(dir):
-    with open(os.path.join(os.environ['HOME'], '.work-worked-on'), 'a+') as f:
+def add_dir_to_tmpfile(dir, tmpfile):
+    with open(tmpfile, 'a+') as f:
         if dir in [line.strip() for line in f.readlines()]:
             print('\n{0} already in temp file.'.format(dir))
         else:
@@ -101,8 +104,8 @@ def add_dir_to_tmpfile(dir):
             f.write(dir + '\n')
 
 
-def remove_dir_from_tmpfile(dir):
-    with open(os.path.join(os.environ['HOME'], '.work-worked-on'), 'r+') as f:
+def remove_dir_from_tmpfile(dir, tmpfile):
+    with open(tmpfile, 'r+') as f:
         keep = [line for line in f.readlines() if dir != line.strip()]
         print('\nRemoving {0} from temp file.'.format(dir))
         f.seek(0)
@@ -110,8 +113,8 @@ def remove_dir_from_tmpfile(dir):
         f.truncate()
 
 
-def get_worked_on():
-    with open(os.path.join(os.environ['HOME'], '.work-worked-on'), 'r') as f:
+def get_worked_on(tmpfile):
+    with open(tmpfile, 'r') as f:
         return [repo.strip() for repo in f.readlines()]
 
 
