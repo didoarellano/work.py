@@ -21,6 +21,7 @@ def main():
 
     if args.action == 'start':
         revert_repository_state(cwd)
+        add_dir_to_tmpfile(cwd)
 
     else:
         repo_arg = args.repository
@@ -34,6 +35,7 @@ def main():
         for repo in repos:
             save_repository_state(repo)
             push_to_remote(repo, remote='private', force=True)
+            remove_dir_from_tmpfile(repo)
 
 
 def remote_exists(dir, remote):
@@ -50,22 +52,6 @@ def push_to_remote(dir, remote='origin', force=False):
         subprocess.call(command, cwd=dir)
 
 
-def remember_repo(fn):
-    def wrapper(repo):
-        remove_dir_from_tmpfile(repo)
-        return fn(repo)
-
-    return wrapper
-
-
-def forget_repo(fn):
-    def wrapper(repo):
-        add_dir_to_tmpfile(repo)
-        return fn(repo)
-
-    return wrapper
-
-
 def in_git_toplevel(dir):
     try:
         toplevel = subprocess.check_output(
@@ -77,7 +63,6 @@ def in_git_toplevel(dir):
         return False
 
 
-@remember_repo
 def save_repository_state(dir):
     commit_message = 'Work end checkpoint commit'
     subprocess.call(['git', 'checkout', '-B', 'work-end-checkpoint'], cwd=dir)
@@ -85,7 +70,6 @@ def save_repository_state(dir):
     subprocess.call(['git', 'commit', '--message', commit_message], cwd=dir)
 
 
-@forget_repo
 def revert_repository_state(dir):
     try:
         subprocess.check_call(['git', 'checkout', 'work-end-checkpoint'], cwd=dir)
