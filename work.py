@@ -43,6 +43,11 @@ def remote_exists(dir, remote):
     return remote in remotes
 
 
+def branch_exists(dir, branch):
+    branches = subprocess.check_output(['git', 'branch'], cwd=dir)
+    return branch in branches
+
+
 def push_to_remote(dir, remote='origin', force=False):
     if not remote_exists(dir, remote):
         print('The remote "{0}" doesn\'t exist. Cancelling `git push`.'.format(remote))
@@ -71,13 +76,12 @@ def save_repository_state(dir):
 
 
 def revert_repository_state(dir):
-    try:
-        subprocess.check_call(['git', 'checkout', 'work-end-checkpoint'], cwd=dir)
-    except subprocess.CalledProcessError:
-        print('No work-end-checkpoint branch found.')
+    if not branch_exists(dir, 'work-end-checkpoint'):
+        print('No work-end-checkpoint branch found. Cancelling reset to master.')
     else:
         master_tip_sha = subprocess.check_output(['git', 'rev-parse', 'master'],
                                                  cwd=dir).strip()
+        subprocess.call(['git', 'checkout', 'work-end-checkpoint'], cwd=dir)
         subprocess.call(['git', 'reset', master_tip_sha], cwd=dir)
         subprocess.call(['git', 'checkout', 'master'], cwd=dir)
         subprocess.call(['git', 'branch', '--delete', 'work-end-checkpoint'], cwd=dir)
