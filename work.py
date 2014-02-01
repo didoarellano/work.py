@@ -94,12 +94,12 @@ def revert_repository_state(dir):
 
 def add_dir_to_tmpfile(dir):
     with open(os.path.join(os.environ['HOME'], '.work-worked-on'), 'a+') as f:
-        if dir not in [line.strip() for line in f.readlines()]:
+        if dir in [line.strip() for line in f.readlines()]:
+            print('\n{0} already in temp file.'.format(dir))
+        else:
             print('\nAdding {0} to temp file.'.format(dir))
             f.write(dir)
             f.write('\n')
-        else:
-            print('\n{0} already in temp file.'.format(dir))
 
 
 def remove_dir_from_tmpfile(dir):
