@@ -15,6 +15,9 @@ def main():
                         nargs='?',
                         default='all',
                         help='default is "all"')
+    parser.add_argument('-r', '--remote',
+                        default='private',
+                        help='Git remote to push to. Default is "private"')
     args = parser.parse_args()
 
     cwd = os.getcwd()
@@ -40,7 +43,7 @@ def main():
         for repo in repos:
             print('\nEnding work on project: {0}'.format(os.path.basename(repo)))
             save_repository_state(repo)
-            push_to_remote(repo, remote='private', force=True)
+            push_to_remote(repo, remote=args.remote, force=True)
             remove_repo_from_tmpfile(repo, TMPFILE)
 
 
