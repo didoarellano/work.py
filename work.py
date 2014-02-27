@@ -18,9 +18,10 @@ def main():
 
     if args.action == 'start':
         print('\nStarting work on project: {0}'.format(os.path.basename(cwd)))
-        revert_repository_state(cwd)
-        add_repo_to_tmpfile(cwd, TMPFILE)
-        show_git_status(cwd)
+        did_revert = revert_repository_state(cwd)
+        did_add = add_repo_to_tmpfile(cwd, TMPFILE)
+        if did_revert and did_add:
+            show_git_status(cwd)
 
     else:
         repo_arg = args.repository
@@ -98,6 +99,7 @@ def save_repository_state(repo):
 def revert_repository_state(repo):
     if not branch_exists(repo, 'work-end-checkpoint'):
         print('\nNo work-end-checkpoint branch found. Cancelling reset to master.')
+        return False
     else:
         print('\nResetting to tip of master branch and deleting the work-end-checkpoint branch.')
         master_tip_sha = subprocess.check_output(['git', 'rev-parse', 'master'],
@@ -106,15 +108,18 @@ def revert_repository_state(repo):
         subprocess.call(['git', 'reset', master_tip_sha], cwd=repo)
         subprocess.call(['git', 'checkout', 'master'], cwd=repo)
         subprocess.call(['git', 'branch', '--delete', 'work-end-checkpoint'], cwd=repo)
+        return True
 
 
 def add_repo_to_tmpfile(repo, tmpfile):
     with open(tmpfile, 'a+') as f:
         if repo in [line.strip() for line in f.readlines()]:
             print('\n{0} already in temp file.'.format(repo))
+            return False
         else:
             print('\nAdding {0} to temp file.'.format(repo))
             f.write(repo + '\n')
+            return True
 
 
 def remove_repo_from_tmpfile(repo, tmpfile):
