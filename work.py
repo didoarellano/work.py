@@ -9,18 +9,9 @@ TMPFILE = os.path.join(os.environ['HOME'], '.work-worked-on')
 
 
 def main():
-    parser = argparse.ArgumentParser(usage='work action [repository]')
-    parser.add_argument('action', help='"start" or "end"')
-    parser.add_argument('repository',
-                        nargs='?',
-                        default='all',
-                        help='default is "all"')
-    parser.add_argument('-r', '--remote',
-                        default='private',
-                        help='Git remote to push to. Default is "private"')
-    args = parser.parse_args()
-
+    args = define_arguments().parse_args()
     cwd = os.getcwd()
+
     if not in_git_toplevel(cwd):
         print('work needs to be called in a git-tracked project\'s root directory')
         return
@@ -45,6 +36,19 @@ def main():
             save_repository_state(repo)
             push_to_remote(repo, remote=args.remote, force=True)
             remove_repo_from_tmpfile(repo, TMPFILE)
+
+
+def define_arguments():
+    parser = argparse.ArgumentParser(usage='work action [repository]')
+    parser.add_argument('action', help='"start" or "end"')
+    parser.add_argument('repository',
+                        nargs='?',
+                        default='all',
+                        help='default is "all"')
+    parser.add_argument('-r', '--remote',
+                        default='private',
+                        help='Git remote to push to. Default is "private"')
+    return parser
 
 
 def show_git_status(repo):
