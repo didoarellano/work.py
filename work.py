@@ -67,6 +67,11 @@ def branch_exists(repo, branch):
     return branch in branches
 
 
+def work_tree_is_clean(repo):
+    changed = subprocess.check_output(['git', 'status', '--porcelain'], cwd=repo)
+    return changed == ''
+
+
 def push_to_remote(repo, remote='origin', force=False):
     if not remote_exists(repo, remote):
         print('\nThe remote "{0}" doesn\'t exist. Cancelling `git push`.'.format(remote))
@@ -89,11 +94,16 @@ def in_git_toplevel(dir):
 
 
 def save_repository_state(repo):
-    print('\nCommiting working tree to work-end-checkpoint branch.')
-    commit_message = 'Work end checkpoint commit'
-    subprocess.call(['git', 'checkout', '-B', 'work-end-checkpoint'], cwd=repo)
-    subprocess.call(['git', 'add', '.'], cwd=repo)
-    subprocess.call(['git', 'commit', '--message', commit_message], cwd=repo)
+    if work_tree_is_clean(repo):
+        print('\nWorking tree is clean. Cancelling checkpoint commit.')
+        return False
+    else:
+        print('\nCommiting working tree to work-end-checkpoint branch.')
+        commit_message = 'Work end checkpoint commit'
+        subprocess.call(['git', 'checkout', '-B', 'work-end-checkpoint'], cwd=repo)
+        subprocess.call(['git', 'add', '.'], cwd=repo)
+        subprocess.call(['git', 'commit', '--message', commit_message], cwd=repo)
+        return True
 
 
 def revert_repository_state(repo):
