@@ -34,9 +34,10 @@ def main():
 
         for repo in repos:
             print('\nEnding work on project: {0}'.format(os.path.basename(repo)))
-            save_repository_state(repo)
-            push_to_remote(repo, remote=args.remote, force=True)
-            remove_repo_from_tmpfile(repo, TMPFILE)
+            did_save = save_repository_state(repo)
+            did_remove = remove_repo_from_tmpfile(repo, TMPFILE)
+            if did_save and did_remove:
+                push_to_remote(repo, remote=args.remote, force=True)
 
 
 def define_arguments():
