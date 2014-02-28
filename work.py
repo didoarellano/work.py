@@ -134,11 +134,21 @@ def add_repo_to_tmpfile(repo, tmpfile):
 
 def remove_repo_from_tmpfile(repo, tmpfile):
     with open(tmpfile, 'r+') as f:
-        keep = [line for line in f.readlines() if repo != line.strip()]
-        print('\nRemoving {0} from temp file.'.format(repo))
-        f.seek(0)
-        f.writelines(keep)
-        f.truncate()
+        repos = [line.strip() for line in f.readlines()]
+        if repo not in repos:
+            print('\n{0} not in temp file.'.format(repo))
+            return False
+        else:
+            print('\nRemoving {0} from temp file.'.format(repo))
+
+            # Newline needs to go at the end, the script gets confused
+            # otherwise. '\n'.join(repos) prepends the newline. Consider looking
+            # into a different format (csv using the csv module?).
+            keep = [r + '\n' for r in repos if r != repo]
+            f.seek(0)
+            f.writelines(keep)
+            f.truncate()
+            return True
 
 
 def get_worked_on(tmpfile):
