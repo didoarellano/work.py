@@ -21,6 +21,12 @@ def main():
         print('\nStarting work on project: {0}'.format(os.path.basename(cwd)))
         did_revert = revert_repository_state(cwd)
         did_add = add_repo_to_tmpfile(cwd, TMPFILE)
+
+        if did_revert:
+            delete_remote_branch(cwd,
+                                 remote=args.remote,
+                                 branch='work-end-checkpoint')
+
         if did_revert and did_add:
             show_git_status(cwd)
 
@@ -86,6 +92,14 @@ def push_to_remote(repo, remote='origin', force=False):
         command = ['git', 'push', remote, '+work-end-checkpoint']
         force and command.append('--force')
         subprocess.call(command, cwd=repo)
+
+
+def delete_remote_branch(repo, remote='origin', branch=None):
+    if branch == None:
+        raise TypeError('branch keyword argument is required')
+    print('\nDeleting branch {0} from {1} remote.'.format(branch, remote))
+    command = ['git', 'push', remote, ':' + branch]
+    subprocess.call(command, cwd=repo)
 
 
 def in_git_toplevel(dir):
