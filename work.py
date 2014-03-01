@@ -16,7 +16,8 @@ def main():
         print('work needs to be called in a git-tracked project\'s root directory')
         return
 
-    if args.action == 'start':
+    action = args.action
+    if action == 's' or action == 'start':
         print('\nStarting work on project: {0}'.format(os.path.basename(cwd)))
         did_revert = revert_repository_state(cwd)
         did_add = add_repo_to_tmpfile(cwd, TMPFILE)
@@ -42,7 +43,11 @@ def main():
 
 def define_arguments():
     parser = argparse.ArgumentParser(usage='work action [repository]')
-    parser.add_argument('action', help='"start" or "end"')
+    parser.add_argument('action',
+                        # set metavar otherwise help displays the choices arg
+                        metavar='action',
+                        choices=('s', 'start', 'e', 'end'),
+                        help='"s[tart]" or "e[nd]"')
     parser.add_argument('repository',
                         nargs='?',
                         default='all',
